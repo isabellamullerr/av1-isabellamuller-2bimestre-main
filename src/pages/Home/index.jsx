@@ -1,94 +1,126 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Lista fixa de livros
-const livros = [
-  {
-    titulo: "Dom Casmurro",
-    autor: "Machado de Assis",
-    capa: "https://m.media-amazon.com/images/I/81eB+7+CkUL.jpg",
-  },
-  {
-    titulo: "O Pequeno Príncipe",
-    autor: "Antoine de Saint-Exupéry",
-    capa: "https://m.media-amazon.com/images/I/71UypkUjStL.jpg",
-  },
-  {
-    titulo: "A Revolução dos Bichos",
-    autor: "George Orwell",
-    capa: "https://m.media-amazon.com/images/I/71kxa1-0mfL.jpg",
-  },
-  {
-    titulo: "1984",
-    autor: "George Orwell",
-    capa: "https://m.media-amazon.com/images/I/71kxa1-0mfL._AC_SL1500_.jpg",
-  },
-  {
-    titulo: "O Hobbit",
-    autor: "J.R.R. Tolkien",
-    capa: "https://m.media-amazon.com/images/I/81t2CVWEsUL.jpg",
-  },
-];
-
 export default function Home() {
-  const [livroAtual, setLivroAtual] = useState(null);
+  const [country, setCountry] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  function buscarNovoLivro() {
+  const colors = {
+    background: "#f0f8ff",
+    text: "#2F4F4F",
+    accent: "#4682B4",
+    light: "#ffffff"
+  };
+
+  const fetchCountry = async (search = "") => {
     setLoading(true);
-    setTimeout(() => {
-      const aleatorio = Math.floor(Math.random() * livros.length);
-      setLivroAtual(livros[aleatorio]);
+    try {
+      let response;
+
+      if (search) {
+        response = await axios.get(`https://restcountries.com/v3.1/name/${search}`);
+      } else {
+        // Buscar país aleatório
+        const allCountries = await axios.get("https://restcountries.com/v3.1/all");
+        const randomIndex = Math.floor(Math.random() * allCountries.data.length);
+        const countryData = allCountries.data[randomIndex];
+        setCountry(countryData);
+        return;
+      }
+
+      setCountry(response.data[0]); // Pegamos o primeiro resultado
+    } catch (error) {
+      alert("País não encontrado.");
+      console.error(error);
+    } finally {
       setLoading(false);
-    }, 500); // Simulação de carregamento
-  }
+    }
+  };
 
   useEffect(() => {
-    buscarNovoLivro();
+    fetchCountry(); // país aleatório ao carregar
   }, []);
 
-  function irParaFavoritos() {
-    navigate("/favoritos");
-  }
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      fetchCountry(searchTerm.trim());
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-yellow-100 p-5 flex flex-col items-center">
-      <h1 className="text-3xl font-bold mb-4 text-center">Livro do Momento</h1>
-
-      {livroAtual && (
-        <div
-          onClick={buscarNovoLivro}
-          className="cursor-pointer max-w-md bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all"
+    <div style={{
+      backgroundColor: colors.background,
+      minHeight: "100vh",
+      padding: "20px",
+      textAlign: "center"
+    }}>
+      {/* Formulário de busca */}
+      <form onSubmit={handleSearch} style={{ marginBottom: "20px" }}>
+        <input
+          type="text"
+          placeholder="Buscar país por nome..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            padding: "10px 15px",
+            fontSize: "1rem",
+            borderRadius: "10px",
+            border: `2px solid ${colors.accent}`,
+            width: "250px"
+          }}
+        />
+        <button
+          type="submit"
+          style={{
+            marginLeft: "10px",
+            padding: "10px 20px",
+            backgroundColor: colors.accent,
+            color: "white",
+            border: "none",
+            borderRadius: "10px",
+            cursor: "pointer",
+            fontWeight: "bold"
+          }}
         >
-          <img
-            src={livroAtual.capa}
-            alt={livroAtual.titulo}
-            className="w-full h-auto rounded mb-4"
+          Buscar
+        </button>
+      </form>
+
+      {/* Card do país */}
+      {country && (
+        <div style={{
+          backgroundColor: colors.light,
+          border: `2px solid ${colors.accent}`,
+          borderRadius: "20px",
+          padding: "30px",
+          maxWidth: "800px",
+          margin: "0 auto",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.1)"
+        }}>
+          <img 
+            src={country.flags?.svg} 
+            alt={`Bandeira de ${country.name.common}`} 
+            style={{ width: "200px", marginBottom: "20px" }} 
           />
-          <h2 className="text-xl font-bold text-gray-800">{livroAtual.titulo}</h2>
-          <p className="text-gray-600 mb-3">Autor: {livroAtual.autor}</p>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              irParaFavoritos();
-            }}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
-          >
-            Ver Favoritos
-          </button>
+          <h2 style={{ fontSize: "2rem", color: colors.accent }}>{country.name.common}</h2>
+          <p><strong>Capital:</strong> {country.capital?.[0]}</p>
+          <p><strong>Continente:</strong> {country.continents?.[0]}</p>
+          <p><strong>População:</strong> {country.population.toLocaleString()}</p>
+          <p><strong>Idiomas:</strong> {country.languages ? Object.values(country.languages).join(", ") : "N/A"}</p>
+          <p><strong>Moeda:</strong> {
+            country.currencies 
+              ? Object.values(country.currencies).map(c => `${c.name} (${c.symbol})`).join(", ")
+              : "N/A"
+          }</p>
         </div>
       )}
 
-      {loading && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow text-center">
-            <div className="animate-spin w-10 h-10 border-4 border-yellow-500 border-t-transparent rounded-full mx-auto mb-3"></div>
-            <p>Carregando livro...</p>
-          </div>
-        </div>
-      )}
+      {/* Loading */}
+      {loading && <p style={{ marginTop: "20px", color: colors.accent }}>Carregando país...</p>}
     </div>
   );
 }

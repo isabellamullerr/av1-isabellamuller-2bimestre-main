@@ -1,12 +1,21 @@
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #e6f5ec;
+  color: #2f4f4f;
 }
 
-.animate-spin-slow {
-  animation: spin-slow 8s linear infinite;
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* DICA: Você pode aplicar essa classe em um ícone de livro assim:
-   <img src="icone-livro.png" className="animate-spin-slow" />
-*/
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+}
