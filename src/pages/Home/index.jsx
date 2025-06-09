@@ -117,10 +117,50 @@ export default function Home() {
               : "N/A"
           }</p>
         </div>
-      )}
+      )
+      }
 
       {/* Loading */}
       {loading && <p style={{ marginTop: "20px", color: colors.accent }}>Carregando país...</p>}
     </div>
   );
 }
+<div style={{ marginTop: "20px", textAlign: "center" }}>
+  <button
+    onClick={(e) => {
+      e.stopPropagation(); // Evita ações do clique no card
+
+      const favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
+
+      const jaExiste = favoritos.some(f => f.name.common === pais.name.common);
+
+      if (jaExiste) {
+        alert(`${pais.name.common} já está nos favoritos!`);
+        return;
+      }
+
+      const paisParaSalvar = {
+        name: { common: pais.name.common },
+        flags: { svg: pais.flags.svg },
+        region: pais.region,
+        capital: pais.capital,
+        population: pais.population
+      };
+
+      favoritos.push(paisParaSalvar);
+      localStorage.setItem("favoritos", JSON.stringify(favoritos));
+      alert(`${pais.name.common} adicionado aos favoritos!`);
+    }}
+    style={{
+      backgroundColor: "#2F4F4F",
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "8px",
+      border: "none",
+      cursor: "pointer",
+      fontWeight: "bold"
+    }}
+  >
+    Adicionar aos Favoritos ⭐
+  </button>
+</div>

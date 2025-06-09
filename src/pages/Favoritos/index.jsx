@@ -3,43 +3,49 @@ import { useEffect, useState } from "react";
 export default function Favoritos() {
   const [favoritos, setFavoritos] = useState([]);
 
+  // Recupera favoritos do localStorage ao carregar
   useEffect(() => {
-    const stored = localStorage.getItem("paisFavoritos");
+    const stored = localStorage.getItem("favoritos");
     if (stored) {
       setFavoritos(JSON.parse(stored));
     }
   }, []);
 
-  if (favoritos.length === 0) {
-    return (
-      <div className="p-6 text-center">
-        <h1 className="text-2xl font-bold mb-4">Favoritos</h1>
-        <p className="text-gray-600">Nenhum país foi adicionado aos favoritos ainda.</p>
-      </div>
-    );
-  }
+  // Remove país dos favoritos
+  const removerFavorito = (nome) => {
+    const atualizados = favoritos.filter((pais) => pais.name.common !== nome);
+    setFavoritos(atualizados);
+    localStorage.setItem("favoritos", JSON.stringify(atualizados));
+  };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Países Favoritos</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {favoritos.map((pais, index) => (
-          <div 
-            key={index}
-            className="bg-green-100 rounded-lg shadow-md p-4 flex items-center space-x-4"
-          >
-            <img 
-              src={pais.flags?.svg} 
-              alt={pais.name?.common}
-              className="w-16 h-12 object-contain"
-            />
-            <div>
-              <h2 className="text-lg font-semibold">{pais.name?.common}</h2>
-              <p className="text-sm text-gray-700">{pais.region}</p>
+    <div className="min-h-screen bg-green-50 p-8">
+      <h1 className="text-3xl font-bold text-center text-green-800 mb-6">🌍 Países Favoritos</h1>
+
+      {favoritos.length === 0 ? (
+        <p className="text-center text-gray-600">Nenhum país favorito adicionado ainda.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {favoritos.map((pais, index) => (
+            <div key={index} className="bg-white rounded-lg shadow p-4 border border-green-200">
+              <h2 className="text-xl font-semibold mb-2">{pais.name.common}</h2>
+              <img
+                src={pais.flags.svg}
+                alt={`Bandeira de ${pais.name.common}`}
+                className="w-full h-40 object-contain mb-2"
+              />
+              <p><strong>Região:</strong> {pais.region}</p>
+              <p><strong>Capital:</strong> {pais.capital?.[0] || "N/A"}</p>
+              <button
+                onClick={() => removerFavorito(pais.name.common)}
+                className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+              >
+                Remover dos Favoritos
+              </button>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
